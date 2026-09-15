@@ -3,6 +3,8 @@
 ## Instructions
 (keep in mind two's complement is used for signed numbers, e.g. 0x0000 is 0, but 0xffff (16 bits) is -1, and in that same vein, 0x8000 is the lowest possible negative number, that being -32768)
 
+## Branches
+We use relative code for branches
 
 ## Registers
 1. `r0/zero`: **Always set to zero.** Reading returns zeroes, writing does nothing.
@@ -40,11 +42,11 @@
 | 19,023 | ASR         | arithmetic right shift                                      | ASR rdd\[dest]
 | 20,024 | ASL         | arithmetic left shift                                       | ASL rdd\[dest]
 | 21,025 | SLT         | sets rd to 1 if rs1 < rs2 else set to 0 (signed)            | SLT rdd\[dest], rs1\[src], rs2\[src]
-| 22,026 | SLTU        | sets rd to 1 if rs1 < rs2 else set to 0 (unsigned)          |
-| 23,027 | SLTI        | sets rd to 1 if rs1 < immediate else set to 0 (signed)      |
-| 24,030 | SLTIU       | sets rd to 1 if rs1 < immediate else set to 0 (unsigned)    |
-| 25,031 | BEQ         | branch if equal to                                          |
-| 26,032 | BNE         | branch if not equal to                                      |
+| 22,026 | SLTU        | sets rd to 1 if rs1 < rs2 else set to 0 (unsigned)          | SLTU rdd\[dest], rs1\[src], rs2\[src]
+| 23,027 | SLTI        | sets rd to 1 if rs1 < immediate else set to 0 (signed)      | SLTI rdd\[dest], rs1\[src], imm\[5b immediate]
+| 24,030 | SLTIU       | sets rd to 1 if rs1 < immediate else set to 0 (unsigned)    | SLTIU rdd\[dest], rs1\[src], imm\[5b immediate]
+| 25,031 | BEQ         | branch if equal to                                          | BEQ rdd\[program counter relative register], rs1\[src], rs2\[src]
+| 26,032 | BNE         | branch if not equal to                                      | BNE rdd\[program counter relative register], rs1\[src], rs2\[src]
 | 27,033 | BLT         | branch if less than                                         |
 | 28,034 | BGE         | branch if greater than                                      |
 | 29,035 | IBLT        | branch if less than (signed)                                |
