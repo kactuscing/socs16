@@ -4,7 +4,7 @@
 (keep in mind two's complement is used for signed numbers, e.g. 0x0000 is 0, but 0xffff (16 bits) is -1, and in that same vein, 0x8000 is the lowest possible negative number, that being -32768)
 
 ## Branches
-We use relative code for branches
+All branches are done with program counter relatives. The register can thus change the program counter by +/- 32768 instructions.
 
 ## Registers
 1. `r0/zero`: **Always set to zero.** Reading returns zeroes, writing does nothing.
@@ -45,13 +45,13 @@ We use relative code for branches
 | 22,026 | SLTU        | sets rd to 1 if rs1 < rs2 else set to 0 (unsigned)          | SLTU rdd\[dest], rs1\[src], rs2\[src]
 | 23,027 | SLTI        | sets rd to 1 if rs1 < immediate else set to 0 (signed)      | SLTI rdd\[dest], rs1\[src], imm\[5b immediate]
 | 24,030 | SLTIU       | sets rd to 1 if rs1 < immediate else set to 0 (unsigned)    | SLTIU rdd\[dest], rs1\[src], imm\[5b immediate]
-| 25,031 | BEQ         | branch if equal to                                          | BEQ rdd\[program counter relative register], rs1\[src], rs2\[src]
-| 26,032 | BNE         | branch if not equal to                                      | BNE rdd\[program counter relative register], rs1\[src], rs2\[src]
-| 27,033 | BLT         | branch if less than                                         |
-| 28,034 | BGE         | branch if greater than                                      |
-| 29,035 | IBLT        | branch if less than (signed)                                |
-| 30,036 | IBGE        | branch if greater than (signed)                             |
-| 31,037 | SYS         | syscall                                                     |
+| 25,031 | BEQ         | branch if equal to                                          | BEQ rdd\[program counter relative], rs1\[src], rs2\[src]
+| 26,032 | BNE         | branch if not equal to                                      | BNE rdd\[program counter relative], rs1\[src], rs2\[src]
+| 27,033 | BLT         | branch if less than                                         | BLT rdd\[program counter relative], rs1\[src], rs2\[src]
+| 28,034 | BGE         | branch if greater than                                      | BGE rdd\[program counter relative], rs1\[src], rs2\[src]
+| 29,035 | IBLT        | branch if less than (signed)                                | IBLT rdd\[program counter relative], rs1\[src], rs2\[src]
+| 30,036 | IBGE        | branch if greater than (signed)                             | IBGE rdd\[program counter relative], rs1\[src], rs2\[src]
+| 31,037 | SYS         | syscall                                                     | SYS
 
 
 ##
