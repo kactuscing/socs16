@@ -53,5 +53,15 @@ All branches are done with program counter relatives. The register can thus chan
 | 30,036 | IBGE        | branch if greater than (signed)                             | IBGE rdd\[program counter relative], rs1\[src], rs2\[src]
 | 31,037 | SYS         | syscall                                                     | SYS
 
+## syscalls :sob: we have 2^16 of them ahahh
+
+0x0 exit
+0x1 error
+0x2 read stdin   r2/v0 output buffer address    r3/a0 buffer size (bytes)
+0x3 write stdin  r2/v0 input buffer address     r3/a0 number of bytes to output from starting position
+
+## Conventions
+
+Preferably all program memory should begin at 0x8000, and the instructions should be from 0x0 to 0x7fff. Program mem should ideally be from 0x8000 to 0x10000
 
 ##
