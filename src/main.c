@@ -7,8 +7,8 @@
 
 
 ut ins_opcode(ut ins) {return ins >> 11;}
-ut ins_reg(ut ins, ut index) {return index < 3 ? ins >> (2 + 3 * (3 - index)) % 8 : 0;}
-ut ins_imm(ut ins, ut len) {return ins % (1 << (len - 1));}
+ut ins_reg(ut ins, ut index) {return index < 3 ? (ins >> (2 + 3 * (2 - index))) % 8 : 0;}
+ut ins_imm(ut ins, ut len) {return ins % (1 << (len));}
 
 int syscall(nt (*mem)[0x10000], nt (*reg)[0x8]) {
     switch ((*reg)[1]) {
@@ -51,34 +51,44 @@ int main() {
     // load instructions here
     /*
     print the char A
-    MOVI r2 0x00        1 2 0
+    MOVI r1 42 VALID
+    0000100100101010
+    LUI r2 0x80 VALID
+    0001001010000000
+    ST r1 r2 VALID
+    0010000101000000
+    MOV r1 r0 VALID
+    0000000100000000
+    ADDI r2 r2 1
+    0011001001000001
+    ST r1 r2
+    0010000101000000
+    MOVI r2 0
     0000101000000000
-    MOV r1 r0           0 1 0
+    MOVI r3 2
+    0000101100000010
+    MOV r1 r0
     0000000100000000
-    MOV r3 r0           0 3 0
-    0000001100000000
-    MOVI r1 0x3         1 1 3
-    0000100101100000
-    MOVI r3 2           1 3 2
-    0000101101000000
-    SYS                 31
+    MOVI r1 3
+    0000100100000011
+    SYS
     1111100000000000
-    MOV r1 r0           0 1 0
+    MOV r1 r0
     0000000100000000
-    SYS                 31
+    SYS
     1111100000000000
     */
 
-    memory[0] = 2369;
+    memory[0] = 2346;
     memory[1] = 4736;
     memory[2] = 8512;
-    memory[3] = 2304;
-    memory[4] = 2592;
-    memory[5] = 8592;
+    memory[3] = 256;
+    memory[4] = 12865;
+    memory[5] = 8512;
     memory[6] = 2560;
-    memory[7] = 256;
-    memory[8] = 768;
-    memory[9] = 2400;
+    memory[7] = 2818;
+    memory[8] = 256;
+    memory[9] = 2307;
     memory[10] = 2880;
     memory[11] = -2048;
     memory[12] = 256;
@@ -86,9 +96,10 @@ int main() {
     
     // begin code execution
 
-    while (1) {
+    for (int i = 0; i < 14; i++) {
         const ut ins = memory[pc];
         const ut ins_regs[3] = {ins_reg(ins, 0), ins_reg(ins, 1), ins_reg(ins, 2)};
+        printf("opcode %u with regs %u and %u, 8b imm %u, 5b imm %u\n", ins_opcode(ins), ins_regs[0], ins_regs[1], ins_imm(ins, 8), ins_imm(ins, 5));
         if (ins_regs[0] == 0 && ins_opcode(ins) != 31) switch (ins_opcode(ins)) {
             case 0: // MOV
                 reg[ins_regs[0]] = reg[ins_regs[1]];
@@ -194,8 +205,9 @@ int main() {
                 printf("Unknown instruction: %d\n", ins_opcode(ins));
                 return 1;
         }
-        pc += 1;
+        pc++;
     }
+    printf("char %c", memory[0x8000]);
     return 0;
 }
 
