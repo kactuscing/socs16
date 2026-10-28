@@ -10,7 +10,7 @@ ut ins_opcode(ut ins) {return ins >> 11;}
 ut ins_reg(ut ins, ut index) {return index < 3 ? (ins >> (2 + 3 * (2 - index))) % 8 : 0;}
 ut ins_imm(ut ins, ut len) {return ins % (1 << (len));}
 
-int syscall(nt (*mem)[0x10000], nt (*reg)[0x8]) {
+ut syscall(nt (*mem)[0x10000], nt (*reg)[0x8]) {
     switch ((*reg)[1]) {
         case 0:
             printf("Process exited with code %d", (*reg[2]), stdout);
@@ -34,6 +34,11 @@ int syscall(nt (*mem)[0x10000], nt (*reg)[0x8]) {
             for (ut i = 0; i < buf_size; i++) 
                 buf[i] = (*mem)[address+i];
             printf("%s",buf);
+            /*printf("ascii codes: ");
+            for (int i = 0; i < buf_size; i++) {
+                printf("%d ", buf[i]);
+            }
+            printf("\n");*/
             return 0;
         }
         default:
@@ -52,22 +57,22 @@ int main() {
     /*
     print the char A
     MOVI r1 42 VALID
-    0000100100101010
+    0000100110000001
     LUI r2 0x80 VALID
     0001001010000000
     ST r1 r2 VALID
     0010000101000000
     MOV r1 r0 VALID
     0000000100000000
-    ADDI r2 r2 1
+    ADDI r2 r2 1 VALID
     0011001001000001
-    ST r1 r2
+    ST r1 r2 VALID
     0010000101000000
-    MOVI r2 0
+    MOVI r2 0 VALID
     0000101000000000
-    MOVI r3 2
+    MOVI r3 2 VALID
     0000101100000010
-    MOV r1 r0
+    MOV r1 r0 VALID
     0000000100000000
     MOVI r1 3
     0000100100000011
@@ -79,7 +84,7 @@ int main() {
     1111100000000000
     */
 
-    memory[0] = 2346;
+    memory[0] = 2369;
     memory[1] = 4736;
     memory[2] = 8512;
     memory[3] = 256;
@@ -89,18 +94,17 @@ int main() {
     memory[7] = 2818;
     memory[8] = 256;
     memory[9] = 2307;
-    memory[10] = 2880;
-    memory[11] = -2048;
-    memory[12] = 256;
-    memory[13] = -2048;
+    memory[10] = -2048;
+    memory[11] = 256;
+    memory[12] = -2048;
     
     // begin code execution
 
     for (int i = 0; i < 14; i++) {
         const ut ins = memory[pc];
         const ut ins_regs[3] = {ins_reg(ins, 0), ins_reg(ins, 1), ins_reg(ins, 2)};
-        printf("opcode %u with regs %u and %u, 8b imm %u, 5b imm %u\n", ins_opcode(ins), ins_regs[0], ins_regs[1], ins_imm(ins, 8), ins_imm(ins, 5));
-        if (ins_regs[0] == 0 && ins_opcode(ins) != 31) switch (ins_opcode(ins)) {
+        //printf("opcode %u with regs %u and %u, 8b imm %u, 5b imm %u\n", ins_opcode(ins), ins_regs[0], ins_regs[1], ins_imm(ins, 8), ins_imm(ins, 5));
+        if (!(ins_regs[0] == 0 && ins_opcode(ins) != 31)) switch (ins_opcode(ins)) {
             case 0: // MOV
                 reg[ins_regs[0]] = reg[ins_regs[1]];
                 break;
@@ -110,13 +114,13 @@ int main() {
                 break;
             case 2: // LUI
                 reg[ins_regs[0]] &= 0xff;
-                reg[ins_regs[0]] |= ins_imm(ins, 8) << 8;
+                reg[ins_regs[0]] = reg[ins_regs[0]] | (ins_imm(ins, 8) << 8);
                 break;
             case 3: // LD
                 reg[ins_regs[0]] = memory[ins_regs[1]];
                 break;
             case 4: // ST
-                memory[ins_regs[1]] = reg[ins_regs[0]];
+                memory[(ut)reg[ins_regs[1]]] = reg[ins_regs[0]];
                 break;
             case 5: // ADD
                 reg[ins_regs[0]] = reg[ins_regs[1]] + reg[ins_regs[2]];
@@ -196,11 +200,10 @@ int main() {
             case 30: // IBGE
                 if ((ut)reg[ins_regs[1]] > (ut)reg[ins_regs[2]]) {branch(pc, ins_regs[0])}
                 break;
-            case 31: { // SYS
-                // syscall logic
-                int ret = syscall(&memory, &reg);
+            case 31:
+                ut ret = syscall(&memory, &reg);
                 if (ret == 1) return 0;
-            }
+                break;
             default:
                 printf("Unknown instruction: %d\n", ins_opcode(ins));
                 return 1;
