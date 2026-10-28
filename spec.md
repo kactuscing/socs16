@@ -42,9 +42,9 @@ All branches are done with program counter relatives. The register can thus chan
 | 19,023 | ASR         | arithmetic right shift                                      | ASR rdd\[dest]
 | 20,024 | ASL         | arithmetic left shift                                       | ASL rdd\[dest]
 | 21,025 | SLT         | sets rd to 1 if rs1 < rs2 else set to 0 (signed)            | SLT rdd\[dest], rs1\[src], rs2\[src]
-| 22,026 | SLTU        | sets rd to 1 if rs1 < rs2 else set to 0 (unsigned)          | SLTU rdd\[dest], rs1\[src], rs2\[src]
+| 22,026 | ISLT        | sets rd to 1 if rs1 < rs2 else set to 0 (unsigned)          | SLTU rdd\[dest], rs1\[src], rs2\[src]
 | 23,027 | SLTI        | sets rd to 1 if rs1 < immediate else set to 0 (signed)      | SLTI rdd\[dest], rs1\[src], imm\[5b immediate]
-| 24,030 | SLTIU       | sets rd to 1 if rs1 < immediate else set to 0 (unsigned)    | SLTIU rdd\[dest], rs1\[src], imm\[5b immediate]
+| 24,030 | ISLTI       | sets rd to 1 if rs1 < immediate else set to 0 (unsigned)    | SLTIU rdd\[dest], rs1\[src], imm\[5b immediate]
 | 25,031 | BEQ         | branch if equal to                                          | BEQ rdd\[program counter relative], rs1\[src], rs2\[src]
 | 26,032 | BNE         | branch if not equal to                                      | BNE rdd\[program counter relative], rs1\[src], rs2\[src]
 | 27,033 | BLT         | branch if less than                                         | BLT rdd\[program counter relative], rs1\[src], rs2\[src]
@@ -54,11 +54,11 @@ All branches are done with program counter relatives. The register can thus chan
 | 31,037 | SYS         | syscall                                                     | SYS
 
 ## syscalls :sob: we have 2^16 of them ahahh
-
+### reads r1 to reference what instruction we are doing
 0x0 exit
-0x1 error
-0x2 read stdin   r2/v0 output buffer address    r3/a0 buffer size (bytes)
-0x3 write stdin  r2/v0 input buffer address     r3/a0 number of bytes to output from starting position
+0x1 error        r2 error code
+0x2 read stdin   r2/v0 output buffer address    r3/a0 buffer size (unsigned # of bytes)
+0x3 write stdin  r2/v0 input buffer address     r3/a0 number of bytes to output from starting position (# of bytes unsigned)
 
 ## Conventions
 
