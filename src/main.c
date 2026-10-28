@@ -13,7 +13,7 @@ ut ins_imm(ut ins, ut len) {return ins % (1 << (len));}
 ut syscall(nt (*mem)[0x10000], nt (*reg)[0x8]) {
     switch ((*reg)[1]) {
         case 0:
-            printf("Process exited with code %d", (*reg[2]), stdout);
+            printf("Process exited with code %d", (*reg)[2], stdout);
             return 1;
         case 1:
             printf("Process failed with code %d", (*reg)[2], stderr);
@@ -34,11 +34,11 @@ ut syscall(nt (*mem)[0x10000], nt (*reg)[0x8]) {
             for (ut i = 0; i < buf_size; i++) 
                 buf[i] = (*mem)[address+i];
             printf("%s",buf);
-            /*printf("ascii codes: ");
+            printf("ascii codes: ");
             for (int i = 0; i < buf_size; i++) {
                 printf("%d ", buf[i]);
             }
-            printf("\n");*/
+            printf("\n");
             return 0;
         }
         default:
@@ -61,17 +61,28 @@ int main() {
     LUI r2 0x80 VALID
     0001001010000000
     ST r1 r2 VALID
-    0010000101000000
+    0010000101000000  STORE A
+    
+    MOV r1 r0 VALID
+    0000000100000000
+    MOVI r1 10
+    0000100100001010
+    ADDI r2 r2 1 VALID
+    0011001001000001
+    ST r1 r2 VALID
+    0010000101000000 STORE NEWLINE
+    
     MOV r1 r0 VALID
     0000000100000000
     ADDI r2 r2 1 VALID
     0011001001000001
     ST r1 r2 VALID
-    0010000101000000
+    0010000101000000 STORE NULL TERMINATE
+    
     MOVI r2 0 VALID
     0000101000000000
-    MOVI r3 2 VALID
-    0000101100000010
+    MOVI r3 3 VALID
+    0000101100000011
     MOV r1 r0 VALID
     0000000100000000
     MOVI r1 3
@@ -79,6 +90,8 @@ int main() {
     SYS
     1111100000000000
     MOV r1 r0
+    0000000100000000
+    MOV r2 r0
     0000000100000000
     SYS
     1111100000000000
@@ -88,15 +101,20 @@ int main() {
     memory[1] = 4736;
     memory[2] = 8512;
     memory[3] = 256;
-    memory[4] = 12865;
-    memory[5] = 8512;
-    memory[6] = 2560;
-    memory[7] = 2818;
-    memory[8] = 256;
-    memory[9] = 2307;
-    memory[10] = -2048;
-    memory[11] = 256;
-    memory[12] = -2048;
+    memory[4] = 2314;
+    memory[5] = 12865;
+    memory[6] = 8512;
+    memory[7] = 256;
+    memory[8] = 12865;
+    memory[9] = 8512;
+    memory[10] = 2560;
+    memory[11] = 2819;
+    memory[12] = 256;
+    memory[13] = 2307;
+    memory[14] = -2048;
+    memory[15] = 256;
+    memory[16] = 512;
+    memory[17] = -2048;
     
     // begin code execution
 
@@ -117,7 +135,7 @@ int main() {
                 reg[ins_regs[0]] = reg[ins_regs[0]] | (ins_imm(ins, 8) << 8);
                 break;
             case 3: // LD
-                reg[ins_regs[0]] = memory[ins_regs[1]];
+                reg[ins_regs[0]] = memory[reg[ins_regs[1]]];
                 break;
             case 4: // ST
                 memory[(ut)reg[ins_regs[1]]] = reg[ins_regs[0]];
