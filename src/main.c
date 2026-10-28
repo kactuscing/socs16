@@ -11,12 +11,13 @@ ut ins_reg(ut ins, ut index) {return index < 3 ? (ins >> (2 + 3 * (2 - index))) 
 ut ins_imm(ut ins, ut len) {return ins % (1 << (len));}
 
 ut syscall(nt (*mem)[0x10000], nt (*reg)[0x8]) {
+    // printf("r1 0x%04x, r2 0x%04x, r3 0x%04x\n",(*reg)[1], (*reg)[2], (*reg)[3]);
     switch ((*reg)[1]) {
         case 0:
-            printf("Process exited with code %d", (*reg)[2], stdout);
+            printf("Process exited with code %d\n", (*reg)[2], stdout);
             return 1;
         case 1:
-            printf("Process failed with code %d", (*reg)[2], stderr);
+            printf("Process failed with code %d\n", (*reg)[2], stderr);
             return 1;
         case 2: {
             ut buf_size = (ut)(*reg)[3];
@@ -34,15 +35,10 @@ ut syscall(nt (*mem)[0x10000], nt (*reg)[0x8]) {
             for (ut i = 0; i < buf_size; i++) 
                 buf[i] = (*mem)[address+i];
             printf("%s",buf);
-            printf("ascii codes: ");
-            for (int i = 0; i < buf_size; i++) {
-                printf("%d ", buf[i]);
-            }
-            printf("\n");
             return 0;
         }
         default:
-            printf("Process failed: opcode %d not found.", (*reg)[1], stderr);
+            printf("Process failed: opcode %d not found.\n", (*reg)[1], stderr);
             return 1;
     }
 
@@ -50,25 +46,30 @@ ut syscall(nt (*mem)[0x10000], nt (*reg)[0x8]) {
 }
 
 int main() {
-    nt memory[0x10000] = {0};
+    nt memory[0x10000] = { // prints A\n\0 and exits with code 0
+        2369, // MOVI r1 42
+        4736, // LUI r2 128
+        8512, // ST r1 r2
+        256, // MOV r1 r0
+        2314, // MOVI r1 10
+        12865, // ADDI r2 r2 1
+        8512, // ST r1 r2
+        256, // MOV r1 r0
+        12865, // ADDI r2 r2 1
+        8512, // ST r1 r2
+        2560, // MOV r2 r0
+        2819, // MOVI r3 3
+        256, // MOV r1 r0
+        2307, // MOVI r1 3
+        -2048, // SYS
+        256, // MOV r1 r0
+        512, // MOV r2 r0
+        -2048 // SYS
+    };
     nt reg[0x8] = {0};
     ut pc = 0;
     // load instructions here
     /*
-    print the char A
-    MOVI r1 42 VALID
-    0000100110000001
-    LUI r2 0x80 VALID
-    0001001010000000
-    ST r1 r2 VALID
-    0010000101000000  STORE A
-    
-    MOV r1 r0 VALID
-    0000000100000000
-    MOVI r1 10
-    0000100100001010
-    ADDI r2 r2 1 VALID
-    0011001001000001
     ST r1 r2 VALID
     0010000101000000 STORE NEWLINE
     
@@ -97,28 +98,8 @@ int main() {
     1111100000000000
     */
 
-    memory[0] = 2369;
-    memory[1] = 4736;
-    memory[2] = 8512;
-    memory[3] = 256;
-    memory[4] = 2314;
-    memory[5] = 12865;
-    memory[6] = 8512;
-    memory[7] = 256;
-    memory[8] = 12865;
-    memory[9] = 8512;
-    memory[10] = 2560;
-    memory[11] = 2819;
-    memory[12] = 256;
-    memory[13] = 2307;
-    memory[14] = -2048;
-    memory[15] = 256;
-    memory[16] = 512;
-    memory[17] = -2048;
     
-    // begin code execution
-
-    for (int i = 0; i < 14; i++) {
+    while (1) {
         const ut ins = memory[pc];
         const ut ins_regs[3] = {ins_reg(ins, 0), ins_reg(ins, 1), ins_reg(ins, 2)};
         //printf("opcode %u with regs %u and %u, 8b imm %u, 5b imm %u\n", ins_opcode(ins), ins_regs[0], ins_regs[1], ins_imm(ins, 8), ins_imm(ins, 5));
@@ -228,7 +209,6 @@ int main() {
         }
         pc++;
     }
-    printf("char %c", memory[0x8000]);
     return 0;
 }
 
