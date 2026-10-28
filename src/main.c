@@ -11,7 +11,6 @@ ut ins_reg(ut ins, ut index) {return index < 3 ? (ins >> (2 + 3 * (2 - index))) 
 ut ins_imm(ut ins, ut len) {return ins % (1 << (len));}
 
 ut syscall(nt (*mem)[0x10000], nt (*reg)[0x8]) {
-    // printf("r1 0x%04x, r2 0x%04x, r3 0x%04x\n",(*reg)[1], (*reg)[2], (*reg)[3]);
     switch ((*reg)[1]) {
         case 0:
             printf("Process exited with code %d\n", (*reg)[2], stdout);
@@ -68,37 +67,6 @@ int main() {
     };
     nt reg[0x8] = {0};
     ut pc = 0;
-    // load instructions here
-    /*
-    ST r1 r2 VALID
-    0010000101000000 STORE NEWLINE
-    
-    MOV r1 r0 VALID
-    0000000100000000
-    ADDI r2 r2 1 VALID
-    0011001001000001
-    ST r1 r2 VALID
-    0010000101000000 STORE NULL TERMINATE
-    
-    MOVI r2 0 VALID
-    0000101000000000
-    MOVI r3 3 VALID
-    0000101100000011
-    MOV r1 r0 VALID
-    0000000100000000
-    MOVI r1 3
-    0000100100000011
-    SYS
-    1111100000000000
-    MOV r1 r0
-    0000000100000000
-    MOV r2 r0
-    0000000100000000
-    SYS
-    1111100000000000
-    */
-
-    
     while (1) {
         const ut ins = memory[pc];
         const ut ins_regs[3] = {ins_reg(ins, 0), ins_reg(ins, 1), ins_reg(ins, 2)};
@@ -211,11 +179,3 @@ int main() {
     }
     return 0;
 }
-
-/*
-8,034 | BGE         | branch if greater than                                      | BGE rdd\[program counter relative], rs1\[src], rs2\[src]
-| 29,035 | IBLT        | branch if less than (unsigned)                                | IBLT rdd\[program counter relative], rs1\[src], rs2\[src]
-| 30,036 | IBGE        | branch if greater than (unsigned)                             | IBGE rdd\[program counter relative], rs1\[src], rs2\[src]
-| 31,037 | SYS         | syscall                                                     | SYS
-
-*/
