@@ -5,6 +5,9 @@
 #define ut uint16_t
 #define branch(program_counter, counter_change) if (counter_change < 0) {program_counter -= (ut)counter_change & 0x7ff;} else {program_counter += (ut)counter_change & 0x7ff;}
 
+#define cas(n, proc) case n: { {proc} break;}
+#define regop(x) reg[ins_regs[0]] = reg[ins_regs[1]] x reg[ins_regs[2]];
+#define immop(x) reg[ins_regs[0]] = reg[ins_regs[1]] x ins_imm(ins, 5);
 
 ut ins_opcode(ut ins) {return ins >> 11;}
 ut ins_reg(ut ins, ut index) {return index < 3 ? (ins >> (2 + 3 * (2 - index))) % 8 : 0;}
@@ -45,7 +48,7 @@ ut syscall(nt (*mem)[0x10000], nt (*reg)[0x8]) {
 }
 
 int main() {
-    nt memory[0x10000] = { // prints A\n\0 and exits with code 0
+    nt memory[0x10000] = { // prints A\n\0 and fails with code 0
         2369, // MOVI r1 42
         4736, // LUI r2 128
         8512, // ST r1 r2
@@ -58,10 +61,11 @@ int main() {
         8512, // ST r1 r2
         2560, // MOV r2 r0
         2819, // MOVI r3 3
-        256, // MOV r1 r0
+        256, // MOV r1 r0   
         2307, // MOVI r1 3
         -2048, // SYS
         256, // MOV r1 r0
+        2305, // MOVI r1 1
         512, // MOV r2 r0
         -2048 // SYS
     };
@@ -70,49 +74,30 @@ int main() {
     while (1) {
         const ut ins = memory[pc];
         const ut ins_regs[3] = {ins_reg(ins, 0), ins_reg(ins, 1), ins_reg(ins, 2)};
-        //printf("opcode %u with regs %u and %u, 8b imm %u, 5b imm %u\n", ins_opcode(ins), ins_regs[0], ins_regs[1], ins_imm(ins, 8), ins_imm(ins, 5));
         if (!(ins_regs[0] == 0 && ins_opcode(ins) != 31)) switch (ins_opcode(ins)) {
-            case 0: // MOV
-                reg[ins_regs[0]] = reg[ins_regs[1]];
-                break;
-            case 1: // MOVI
+            cas(0, reg[ins_regs[0]] = reg[ins_regs[1]];)
+            cas(1, 
                 reg[ins_regs[0]] &= 0xff00;
                 reg[ins_regs[0]] |= ins_imm(ins, 8);
-                break;
-            case 2: // LUI
+            )
+            cas(2,
                 reg[ins_regs[0]] &= 0xff;
                 reg[ins_regs[0]] = reg[ins_regs[0]] | (ins_imm(ins, 8) << 8);
-                break;
-            case 3: // LD
-                reg[ins_regs[0]] = memory[reg[ins_regs[1]]];
-                break;
-            case 4: // ST
-                memory[(ut)reg[ins_regs[1]]] = reg[ins_regs[0]];
-                break;
-            case 5: // ADD
-                reg[ins_regs[0]] = reg[ins_regs[1]] + reg[ins_regs[2]];
-                break;
-            case 6: // ADDI
-                reg[ins_regs[0]] = reg[ins_regs[1]] + ins_imm(ins, 5);
-                break;
-            case 7: // SUB
-                reg[ins_regs[0]] = reg[ins_regs[1]] - reg[ins_regs[2]];
-                break;
-            case 8: // SUBI
-                reg[ins_regs[0]] = reg[ins_regs[1]] - ins_imm(ins, 5);
-                break;
-            case 9: // MUL
-                reg[ins_regs[0]] = reg[ins_regs[1]] * reg[ins_regs[2]];
-                break;
-            case 10: // IMUL
+            )
+            cas(3, reg[ins_regs[0]] = memory[reg[ins_regs[1]]];)
+            cas(4, memory[(ut)reg[ins_regs[1]]] = reg[ins_regs[0]];)
+            cas(5, regop(+))
+            cas(6, immop(+))
+            cas(7, regop(-))
+            cas(8, immop(-))
+            cas(9, regop(*))
+            cas(10, 
                 reg[ins_regs[0]] = (ut)reg[ins_regs[1]] * (ut)reg[ins_regs[2]];
-                break;
-            case 11: // DIV
-                reg[ins_regs[0]] = reg[ins_regs[1]] / reg[ins_regs[2]];
-                break;
-            case 12: // IDIV
+            )
+            cas(11, regop(/))
+            cas(12, 
                 reg[ins_regs[0]] = (ut)reg[ins_regs[1]] / (ut)reg[ins_regs[2]];
-                break;
+            )
             case 13: // AND
                 reg[ins_regs[0]] = reg[ins_regs[1]] & reg[ins_regs[2]];
                 break;
